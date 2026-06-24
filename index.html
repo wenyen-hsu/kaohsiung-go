@@ -2,34 +2,31 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>高雄都會輕旅大眾運輸互動導航</title>
-    
-    <!-- Chosen Palette: Warm Neutrals with Muted Teal & Terracotta -->
-    <!-- Application Structure Plan: 本網頁採用響應式左右雙欄式的儀表板架構。左欄配置了起訖點控制面板以及一個基於 HTML5 Canvas 繪製的「高雄都會軌道地理相對位置地圖」；右欄則為動態交通路線指引與目的地精選美食卡片。此設計將繁瑣的交通路網與繁多的美食清單轉化為直覺的點對點對照系統，使用者不需翻閱長篇文字，只需在地圖上輕輕一點，便能瞬間掌握所有轉乘細節與美食口袋名單，大幅提昇行程規劃的流暢度。 -->
-    <!-- Visualization & Content Choices: 
-         - 軌道相對位置地圖 -> 目的：組織空間關係與視覺引導 -> 方法：HTML 絕對定位按鈕 + Canvas 動態路線繪製 -> 互動：點擊站點動態切換起迄狀態、動態流動路徑動畫 -> 理由：Canvas 繪圖能實現高效流暢的虛線流動與脈衝動畫，且完美避開 SVG，比靜態圖檔更具趣味性。
-         - 步驟式導航面板 -> 目的：知會轉乘方案 -> 方法：JS DOM 動態時間軸排版 -> 理由：卡片式結構讓轉乘步驟一目了然。
-         - 目的地美食推薦 -> 目的：比較與呈現美食 -> 方法：動態 HTML 列表 -> 互動：隨終點切換即時變更 -> 理由：讓旅客聚焦於即將抵達之處的美食，資訊不凌亂。
-         - 美食詳細資訊彈出視窗 -> 目的：知會詳細美食與交通細節 -> 方法：動態 HTML 彈出視窗 -> 互動：點擊美食卡片彈出視窗 -> 理由：點擊可查詢包含招牌、營業時間及自目的地出發的步行指南，並標註 Google 地圖評價星等，並提供一鍵開啟 Google 地圖導航功能，無縫指引。 -->
-    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. All weekend-closed stores (e.g. Qiao Pin Fried Rice) are completely removed. All remaining food options are open on Saturday and Sunday. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#F4F1EA">
+    <title>高雄都會輕旅 · 大眾運輸互動導航</title>
 
-    <!-- Tailwind CSS For Modern Utility Styling -->
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        'neutral-bg': '#F5F2EB',
+                        'neutral-bg': '#F4F1EA',
                         'neutral-card': '#FFFFFF',
-                        'accent-teal': '#3B6E66',
-                        'accent-warm': '#C97A5B',
-                        'mrt-red': '#E13B30',
-                        'mrt-orange': '#F49E17',
-                        'lrt-green': '#239343',
-                        'text-main': '#2B2927',
-                        'text-muted': '#6E6963'
+                        'accent-teal': '#2F6E63',
+                        'accent-warm': '#C9714F',
+                        'mrt-red': '#E1392E',
+                        'mrt-orange': '#F09A1A',
+                        'lrt-green': '#1FA14C',
+                        'text-main': '#26241F',
+                        'text-muted': '#79736B'
                     },
                     fontFamily: {
                         sans: ['"Noto Sans TC"', 'system-ui', 'sans-serif'],
@@ -39,336 +36,338 @@
         }
     </script>
     <style>
+        html { -webkit-text-size-adjust: 100%; }
         body {
-            background-color: #F5F2EB;
-            color: #2B2927;
+            background-color: #F4F1EA;
+            color: #26241F;
+            font-family: "Noto Sans TC", system-ui, sans-serif;
         }
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #D6D2C9; border-radius: 3px; }
         ::-webkit-scrollbar-thumb:hover { background: #BFB9AE; }
-        
+
         @keyframes pulse-teal {
-            0% { box-shadow: 0 0 0 0 rgba(59, 110, 102, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(59, 110, 102, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(59, 110, 102, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(47, 110, 99, 0.55); }
+            70% { box-shadow: 0 0 0 12px rgba(47, 110, 99, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(47, 110, 99, 0); }
         }
         @keyframes pulse-warm {
-            0% { box-shadow: 0 0 0 0 rgba(201, 122, 91, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(201, 122, 91, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(201, 122, 91, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(201, 113, 79, 0.55); }
+            70% { box-shadow: 0 0 0 12px rgba(201, 113, 79, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(201, 113, 79, 0); }
         }
-        .pulse-start-active {
+        .pulse-start-active > .node-dot {
             animation: pulse-teal 1.8s infinite;
-            border-color: #3B6E66 !important;
-            transform: scale(1.1);
+            border-color: #2F6E63 !important;
+            transform: scale(1.12);
         }
-        .pulse-end-active {
+        .pulse-end-active > .node-dot {
             animation: pulse-warm 1.8s infinite;
-            border-color: #C97A5B !important;
-            transform: scale(1.1);
+            border-color: #C9714F !important;
+            transform: scale(1.12);
         }
         .unicode-icon {
             font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
         }
 
-        .modal-overlay {
-            transition: opacity 0.25s ease-out;
+        /* Modal: bottom-sheet on mobile, centered card on desktop */
+        .modal-overlay { transition: opacity 0.25s ease-out; }
+        .modal-content-box { transition: transform 0.30s cubic-bezier(0.34, 1.4, 0.5, 1), opacity 0.25s ease-out; }
+        .modal-overlay.hidden { display: none; opacity: 0; }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-content-box.scale-down { transform: translateY(40px) scale(0.98); opacity: 0; }
+        .modal-content-box.scale-up { transform: translateY(0) scale(1); opacity: 1; }
+        @media (max-width: 639px) {
+            .modal-content-box.scale-down { transform: translateY(100%); opacity: 1; }
         }
-        .modal-content-box {
-            transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease-out;
-        }
-        .modal-overlay.hidden {
-            display: none;
-            opacity: 0;
-        }
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-        .modal-content-box.scale-down {
-            transform: scale(0.9);
-            opacity: 0;
-        }
-        .modal-content-box.scale-up {
-            transform: scale(1);
-            opacity: 1;
+
+        select {
+            -webkit-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2379736B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.85rem center;
         }
     </style>
 </head>
-<body class="antialiased min-h-screen flex flex-col items-center py-6 px-4 md:px-8">
+<body class="antialiased min-h-screen flex flex-col">
 
-    <header class="w-full max-w-6xl mb-6">
-        <h1 class="text-3xl md:text-4xl font-extrabold text-text-main mb-2 border-b-2 border-accent-teal inline-block pb-1.5">
-            高雄都會輕旅地圖導航系統
-        </h1>
-        <p class="text-text-muted text-base max-w-3xl leading-relaxed mt-3">
-            本系統以「漢王洲際飯店」為中心，整合高雄捷運紅線、橘線、環狀輕軌與鹽埕步道走廊。您可以<b>點擊地圖上的各個站點圖標</b>，或利用選單指定<b>起點</b>與<b>終點</b>，系統將立即繪製動態流光轉乘路線，並為您搜羅周邊<b>週末皆有營業（六日不休息）</b>之經典高評分美食與導航。
-        </p>
+    <!-- Sticky App Bar -->
+    <header class="sticky top-0 z-30 w-full bg-neutral-bg/85 backdrop-blur-md border-b border-stone-200/70">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5 flex items-center gap-3">
+            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-accent-teal text-white flex items-center justify-center text-lg sm:text-xl shadow-sm flex-shrink-0 unicode-icon">🚇</div>
+            <div class="min-w-0">
+                <h1 class="text-[15px] sm:text-xl font-black text-text-main leading-tight truncate">高雄都會輕旅 · 導航</h1>
+                <p class="text-[11px] sm:text-xs text-text-muted truncate">捷運紅・橘線 × 環狀輕軌 × 鹽埕美食</p>
+            </div>
+        </div>
     </header>
 
-    <main class="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <!-- Left Column: Settings and Map -->
-        <section class="lg:col-span-7 flex flex-col gap-6">
-            
-            <!-- Trip Selector Panel -->
-            <div class="bg-neutral-card rounded-xl shadow-sm border border-stone-200 p-5">
-                <h2 class="text-sm font-bold tracking-wider text-text-muted uppercase mb-4">📍 規劃您的行程路線</h2>
-                
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                    <div>
-                        <label class="block text-xs font-bold text-accent-teal uppercase mb-1.5">🟢 選擇起點：</label>
-                        <select id="select-start" onchange="handleSelectChange()" class="w-full bg-neutral-bg border border-stone-300 rounded-lg p-2.5 text-sm font-medium focus:outline-none focus:border-accent-teal">
-                            <option value="arrival">高鐵左營站 (起點/樞紐)</option>
-                            <option value="station">高雄火車站 (鐵路樞紐)</option>
-                            <option value="hotel" selected>漢王洲際飯店 (住宿核心)</option>
-                            <option value="pier2">駁二藝術特區 (觀光地標)</option>
-                            <option value="exhibition">高雄展覽館 (商務與展館)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-accent-warm uppercase mb-1.5">🔴 選擇終點：</label>
-                        <select id="select-end" onchange="handleSelectChange()" class="w-full bg-neutral-bg border border-stone-300 rounded-lg p-2.5 text-sm font-medium focus:outline-none focus:border-accent-warm">
-                            <option value="arrival">高鐵左營站 (起點/樞紐)</option>
-                            <option value="station">高雄火車站 (鐵路樞紐)</option>
-                            <option value="hotel">漢王洲際飯店 (住宿核心)</option>
-                            <option value="pier2">駁二藝術特區 (觀光地標)</option>
-                            <option value="exhibition" selected>高雄展覽館 (商務與展館)</option>
-                        </select>
-                    </div>
+    <main class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5">
+
+        <!-- Left Column: Planner + Map -->
+        <div class="lg:col-span-7 flex flex-col gap-4 sm:gap-5">
+
+            <!-- Trip Planner -->
+            <section class="bg-neutral-card rounded-2xl shadow-sm ring-1 ring-stone-200/70 p-4 sm:p-5">
+                <div class="flex items-center gap-2 mb-3.5">
+                    <span class="text-base unicode-icon">📍</span>
+                    <h2 class="text-sm font-bold tracking-wide text-text-main">規劃您的行程路線</h2>
                 </div>
 
-                <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-100">
-                    <span class="text-xs text-text-muted">💡 提示：點擊下方地圖的圓形圖標，可快速設定起終點！</span>
-                    <button onclick="swapPoints()" class="text-xs font-bold text-accent-teal hover:text-accent-warm flex items-center gap-1 bg-stone-100 px-3 py-1.5 rounded-lg transition-colors">
-                        🔄 起訖點對調
+                <div class="relative flex items-stretch gap-3">
+                    <!-- connector dot-line -->
+                    <div class="flex flex-col items-center pt-3.5 pb-3.5 flex-shrink-0">
+                        <span class="w-3 h-3 rounded-full bg-accent-teal ring-4 ring-accent-teal/15"></span>
+                        <span class="flex-1 w-0.5 my-1 bg-gradient-to-b from-accent-teal/40 to-accent-warm/40 rounded"></span>
+                        <span class="w-3 h-3 rounded-full bg-accent-warm ring-4 ring-accent-warm/15"></span>
+                    </div>
+
+                    <div class="flex-1 space-y-2.5 min-w-0">
+                        <div>
+                            <label class="block text-[11px] font-bold text-accent-teal mb-1">起點</label>
+                            <select id="select-start" onchange="handleSelectChange()" class="w-full bg-neutral-bg border border-stone-300 rounded-xl pl-3.5 pr-9 py-3 text-[15px] font-medium text-text-main focus:outline-none focus:ring-2 focus:ring-accent-teal/40 focus:border-accent-teal">
+                                <option value="arrival">🚄 高鐵左營站</option>
+                                <option value="station">🚂 高雄火車站</option>
+                                <option value="hotel" selected>🏨 漢王洲際飯店</option>
+                                <option value="pier2">🎨 駁二藝術特區</option>
+                                <option value="exhibition">🏛️ 高雄展覽館</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-accent-warm mb-1">終點</label>
+                            <select id="select-end" onchange="handleSelectChange()" class="w-full bg-neutral-bg border border-stone-300 rounded-xl pl-3.5 pr-9 py-3 text-[15px] font-medium text-text-main focus:outline-none focus:ring-2 focus:ring-accent-warm/40 focus:border-accent-warm">
+                                <option value="arrival">🚄 高鐵左營站</option>
+                                <option value="station">🚂 高雄火車站</option>
+                                <option value="hotel">🏨 漢王洲際飯店</option>
+                                <option value="pier2">🎨 駁二藝術特區</option>
+                                <option value="exhibition" selected>🏛️ 高雄展覽館</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button onclick="swapPoints()" aria-label="起訖點對調" class="self-center flex-shrink-0 w-11 h-11 rounded-xl bg-stone-100 hover:bg-accent-teal hover:text-white text-accent-teal flex items-center justify-center text-lg transition-colors active:scale-95 shadow-sm">
+                        ⇅
                     </button>
                 </div>
-            </div>
 
-            <!-- Canvas Interactive Map Panel -->
-            <div class="bg-neutral-card rounded-xl shadow-sm border border-stone-200 p-5 flex flex-col">
-                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h3 class="text-base font-bold text-text-main">高雄都會軌道地理相對位置圖</h3>
-                        <p class="text-xs text-text-muted">地圖依相對地理方位繪製（上北下南，左西右東）</p>
-                    </div>
-                    <div class="flex gap-3 text-[10px] sm:text-xs font-semibold">
-                        <span class="flex items-center gap-1 text-mrt-red">■ <span class="text-text-muted">捷運紅線</span></span>
-                        <span class="flex items-center gap-1 text-mrt-orange">■ <span class="text-text-muted">捷運橘線</span></span>
-                        <span class="flex items-center gap-1 text-lrt-green">■ <span class="text-text-muted">輕軌線</span></span>
-                        <span class="flex items-center gap-1 text-stone-400">--- <span class="text-text-muted">步廊</span></span>
-                    </div>
+                <p class="mt-3 pt-3 border-t border-stone-100 text-[11px] text-text-muted flex items-center gap-1.5">
+                    💡 也可直接點下方地圖的站點圖標來設定起終點
+                </p>
+            </section>
+
+            <!-- Interactive Map -->
+            <section class="bg-neutral-card rounded-2xl shadow-sm ring-1 ring-stone-200/70 p-4 sm:p-5 flex flex-col">
+                <div class="mb-3">
+                    <h3 class="text-sm font-bold text-text-main">軌道地理相對位置圖</h3>
+                    <p class="text-[11px] text-text-muted mt-0.5">依相對方位繪製（上北下南）· 點圖標可設定起終點</p>
                 </div>
 
-                <!-- Map Container with Absolute Nodes -->
-                <div class="relative w-full border border-stone-150 rounded-xl bg-stone-50 overflow-hidden" style="aspect-ratio: 4/3;">
-                    
+                <!-- Legend -->
+                <div class="flex flex-wrap gap-x-3 gap-y-1.5 mb-3 text-[11px] font-semibold">
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1.5 rounded-full bg-mrt-red"></span><span class="text-text-muted">捷運紅線</span></span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1.5 rounded-full bg-mrt-orange"></span><span class="text-text-muted">捷運橘線</span></span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 h-1.5 rounded-full bg-lrt-green"></span><span class="text-text-muted">環狀輕軌</span></span>
+                    <span class="flex items-center gap-1.5"><span class="w-3 border-t-2 border-dashed border-stone-400"></span><span class="text-text-muted">步行走廊</span></span>
+                </div>
+
+                <!-- Map Canvas + Nodes -->
+                <div class="relative w-full rounded-2xl bg-gradient-to-br from-stone-50 to-stone-100 ring-1 ring-stone-200/80 overflow-hidden" style="aspect-ratio: 4/3;">
+
                     <canvas id="mapCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
 
-                    <!-- Station Node: Zuoying (North) -->
-                    <div id="node-arrival" onclick="clickMapNode('arrival')" class="absolute cursor-pointer flex flex-col items-center group transition-all" style="top: 15%; left: 50%; transform: translate(-50%, -50%); z-index: 20;">
-                        <div class="w-10 h-10 rounded-full bg-white border-2 border-mrt-red shadow-md flex items-center justify-center transition-transform group-hover:scale-105">
-                            <span class="text-lg unicode-icon">🚄</span>
+                    <!-- Zuoying (North) -->
+                    <div id="node-arrival" onclick="clickMapNode('arrival')" class="absolute cursor-pointer flex flex-col items-center group" style="top: 15%; left: 50%; transform: translate(-50%, -50%); z-index: 20;">
+                        <div class="node-dot w-12 h-12 rounded-full bg-white border-2 border-mrt-red shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95">
+                            <span class="text-xl unicode-icon">🚄</span>
                         </div>
-                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] rounded font-semibold whitespace-nowrap">高鐵左營站 (R16)</span>
-                        <div id="badge-arrival" class="absolute -top-6 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm hidden"></div>
+                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] sm:text-[11px] rounded-md font-semibold whitespace-nowrap shadow-sm">高鐵左營 R16</span>
+                        <div id="badge-arrival" class="absolute -top-7 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm hidden"></div>
                     </div>
 
-                    <!-- Station Node: Kaohsiung Station (Middle-North) -->
-                    <div id="node-station" onclick="clickMapNode('station')" class="absolute cursor-pointer flex flex-col items-center group transition-all" style="top: 33%; left: 50%; transform: translate(-50%, -50%); z-index: 20;">
-                        <div class="w-10 h-10 rounded-full bg-white border-2 border-mrt-red shadow-md flex items-center justify-center transition-transform group-hover:scale-105">
-                            <span class="text-lg unicode-icon">🚂</span>
+                    <!-- Kaohsiung Station -->
+                    <div id="node-station" onclick="clickMapNode('station')" class="absolute cursor-pointer flex flex-col items-center group" style="top: 33%; left: 50%; transform: translate(-50%, -50%); z-index: 20;">
+                        <div class="node-dot w-12 h-12 rounded-full bg-white border-2 border-mrt-red shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95">
+                            <span class="text-xl unicode-icon">🚂</span>
                         </div>
-                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] rounded font-semibold whitespace-nowrap">高雄火車站 (R11)</span>
-                        <div id="badge-station" class="absolute -top-6 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm hidden"></div>
+                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] sm:text-[11px] rounded-md font-semibold whitespace-nowrap shadow-sm">高雄車站 R11</span>
+                        <div id="badge-station" class="absolute -top-7 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm hidden"></div>
                     </div>
 
-                    <!-- Interchange Node: Formosa Boulevard (Center Interchange) -->
+                    <!-- Formosa Interchange -->
                     <div id="node-formosa" class="absolute flex flex-col items-center select-none" style="top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;">
-                        <div class="w-8 h-8 rounded-full bg-white border-2 border-stone-400 shadow-sm flex items-center justify-center">
-                            <span class="text-[9px] font-bold text-stone-500">轉乘</span>
+                        <div class="w-9 h-9 rounded-full bg-white border-2 border-stone-400 shadow-sm flex items-center justify-center">
+                            <span class="text-[10px] font-bold text-stone-500">轉乘</span>
                         </div>
-                        <span class="mt-1 px-1.5 py-0.5 bg-slate-800/60 text-white text-[9px] rounded whitespace-nowrap">美麗島站 (R10/O5)</span>
+                        <span class="mt-1 px-1.5 py-0.5 bg-slate-700/70 text-white text-[10px] rounded-md whitespace-nowrap">美麗島 R10/O5</span>
                     </div>
 
-                    <!-- Station Node: Hotel (West) -->
-                    <div id="node-hotel" onclick="clickMapNode('hotel')" class="absolute cursor-pointer flex flex-col items-center group transition-all" style="top: 50%; left: 20%; transform: translate(-50%, -50%); z-index: 20;">
-                        <div class="w-10 h-10 rounded-full bg-white border-2 border-amber-600 shadow-md flex items-center justify-center transition-transform group-hover:scale-105">
-                            <span class="text-lg unicode-icon">🏨</span>
+                    <!-- Hotel (West) -->
+                    <div id="node-hotel" onclick="clickMapNode('hotel')" class="absolute cursor-pointer flex flex-col items-center group" style="top: 50%; left: 23%; transform: translate(-50%, -50%); z-index: 20;">
+                        <div class="node-dot w-12 h-12 rounded-full bg-white border-2 border-amber-600 shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95">
+                            <span class="text-xl unicode-icon">🏨</span>
                         </div>
-                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] rounded font-semibold whitespace-nowrap">漢王洲際飯店</span>
-                        <div id="badge-hotel" class="absolute -top-6 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm hidden"></div>
+                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] sm:text-[11px] rounded-md font-semibold whitespace-nowrap shadow-sm">漢王飯店</span>
+                        <div id="badge-hotel" class="absolute -top-7 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm hidden"></div>
                     </div>
 
-                    <!-- Station Node: Pier-2 Dayi (South-West) -->
-                    <div id="node-pier2" onclick="clickMapNode('pier2')" class="absolute cursor-pointer flex flex-col items-center group transition-all" style="top: 73%; left: 20%; transform: translate(-50%, -50%); z-index: 20;">
-                        <div class="w-10 h-10 rounded-full bg-white border-2 border-lrt-green shadow-md flex items-center justify-center transition-transform group-hover:scale-105">
-                            <span class="text-lg unicode-icon">🎨</span>
+                    <!-- Pier-2 (South-West) -->
+                    <div id="node-pier2" onclick="clickMapNode('pier2')" class="absolute cursor-pointer flex flex-col items-center group" style="top: 73%; left: 23%; transform: translate(-50%, -50%); z-index: 20;">
+                        <div class="node-dot w-12 h-12 rounded-full bg-white border-2 border-lrt-green shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95">
+                            <span class="text-xl unicode-icon">🎨</span>
                         </div>
-                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] rounded font-semibold whitespace-nowrap">駁二大義站 (C12)</span>
-                        <div id="badge-pier2" class="absolute -top-6 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm hidden"></div>
+                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] sm:text-[11px] rounded-md font-semibold whitespace-nowrap shadow-sm">駁二大義 C12</span>
+                        <div id="badge-pier2" class="absolute -top-7 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm hidden"></div>
                     </div>
 
-                    <!-- Station Node: Kaohsiung Exhibition Center (South) -->
-                    <div id="node-exhibition" onclick="clickMapNode('exhibition')" class="absolute cursor-pointer flex flex-col items-center group transition-all" style="top: 73%; left: 75%; transform: translate(-50%, -50%); z-index: 20;">
-                        <div class="w-10 h-10 rounded-full bg-white border-2 border-lrt-green shadow-md flex items-center justify-center transition-transform group-hover:scale-105">
-                            <span class="text-lg unicode-icon">🏛️</span>
+                    <!-- Exhibition Center (South) -->
+                    <div id="node-exhibition" onclick="clickMapNode('exhibition')" class="absolute cursor-pointer flex flex-col items-center group" style="top: 73%; left: 75%; transform: translate(-50%, -50%); z-index: 20;">
+                        <div class="node-dot w-12 h-12 rounded-full bg-white border-2 border-lrt-green shadow-md flex items-center justify-center transition-transform group-hover:scale-105 group-active:scale-95">
+                            <span class="text-xl unicode-icon">🏛️</span>
                         </div>
-                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] rounded font-semibold whitespace-nowrap">高雄展覽館站 (C8)</span>
-                        <div id="badge-exhibition" class="absolute -top-6 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm hidden"></div>
+                        <span class="mt-1 px-1.5 py-0.5 bg-slate-900/80 text-white text-[10px] sm:text-[11px] rounded-md font-semibold whitespace-nowrap shadow-sm">展覽館 C8</span>
+                        <div id="badge-exhibition" class="absolute -top-7 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm hidden"></div>
                     </div>
 
-                    <div class="absolute bottom-3 right-3 bg-white/90 px-2 py-1 rounded border border-stone-200 text-[9px] font-bold text-text-muted shadow-sm select-none">
-                        🧭 偏北 N ↑
+                    <div class="absolute bottom-2.5 right-2.5 bg-white/90 px-2 py-1 rounded-lg ring-1 ring-stone-200 text-[10px] font-bold text-text-muted shadow-sm select-none">
+                        🧭 N ↑
                     </div>
                 </div>
-            </div>
-        </section>
+            </section>
+        </div>
 
-        <!-- Right Column: Information Steps & Local Foods -->
-        <section class="lg:col-span-5 flex flex-col gap-6">
-            
-            <!-- Route Steps Panel -->
-            <div class="bg-neutral-card rounded-xl shadow-sm border border-stone-200 p-5 flex flex-col min-h-[350px]">
+        <!-- Right Column: Steps + Food -->
+        <div class="lg:col-span-5 flex flex-col gap-4 sm:gap-5">
+
+            <!-- Route Steps -->
+            <section class="bg-neutral-card rounded-2xl shadow-sm ring-1 ring-stone-200/70 p-4 sm:p-5 flex flex-col">
                 <div class="flex items-center gap-3 border-b border-stone-100 pb-3 mb-4">
-                    <div class="w-9 h-9 rounded-lg bg-accent-teal/10 flex items-center justify-center text-accent-teal">
-                        <span class="text-xl unicode-icon">🧭</span>
-                    </div>
+                    <div class="w-10 h-10 rounded-xl bg-accent-teal/10 flex items-center justify-center text-accent-teal text-xl unicode-icon flex-shrink-0">🧭</div>
                     <div>
-                        <span class="text-[9px] font-bold tracking-wider text-accent-warm uppercase">Transit Planner</span>
-                        <h2 class="text-base font-bold text-text-main">交通指引步驟</h2>
+                        <span class="text-[10px] font-bold tracking-wider text-accent-warm uppercase">Transit Planner</span>
+                        <h2 class="text-base font-bold text-text-main leading-tight">交通指引步驟</h2>
                     </div>
                 </div>
 
-                <div class="bg-stone-50 p-3 rounded-lg border border-stone-150 flex items-center justify-between text-xs mb-4">
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-emerald-600 font-bold">🟢 起點</span>
-                        <span id="lbl-start" class="font-bold text-text-main">-</span>
+                <!-- From → To pill -->
+                <div class="bg-stone-50 ring-1 ring-stone-200/70 p-3 rounded-xl flex items-center gap-2 text-[13px] mb-4">
+                    <div class="flex-1 min-w-0">
+                        <span class="text-[10px] text-emerald-700 font-bold block">🟢 起點</span>
+                        <span id="lbl-start" class="font-bold text-text-main truncate block">-</span>
                     </div>
-                    <span class="text-stone-400">➔</span>
-                    <div class="flex items-center gap-1.5">
-                        <span class="text-orange-600 font-bold">🔴 終點</span>
-                        <span id="lbl-end" class="font-bold text-text-main">-</span>
+                    <span class="text-stone-300 text-lg flex-shrink-0">➔</span>
+                    <div class="flex-1 min-w-0 text-right">
+                        <span class="text-[10px] text-orange-700 font-bold block">🔴 終點</span>
+                        <span id="lbl-end" class="font-bold text-text-main truncate block">-</span>
                     </div>
                 </div>
 
                 <div class="flex-grow">
-                    <h3 class="text-[10px] font-bold text-text-muted uppercase mb-3 tracking-wider">🚶 推薦乘車指南</h3>
-                    <div id="steps-box" class="space-y-4">
-                    </div>
+                    <h3 class="text-[11px] font-bold text-text-muted uppercase mb-3 tracking-wider">🚶 推薦乘車指南</h3>
+                    <div id="steps-box" class="space-y-1"></div>
                 </div>
 
-                <div class="mt-5 pt-4 border-t border-stone-100 flex items-center justify-between">
+                <div class="mt-5 pt-4 border-t border-stone-100 flex items-end justify-between">
                     <div>
-                        <span class="text-[10px] text-text-muted block">預估總旅行時間</span>
-                        <span id="lbl-time" class="text-2xl font-black text-accent-teal">-</span>
+                        <span class="text-[11px] text-text-muted block">預估總旅行時間</span>
+                        <span id="lbl-time" class="text-3xl font-black text-accent-teal leading-none">-</span>
                     </div>
-                    <div class="text-right">
-                        <span class="text-[10px] text-text-muted block">主幹交通工具</span>
-                        <span id="lbl-type-badge" class="text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full mt-1 inline-block">大眾軌道</span>
-                    </div>
+                    <span id="lbl-type-badge" class="text-[11px] font-bold text-white px-3 py-1 rounded-full">大眾軌道</span>
                 </div>
-            </div>
+            </section>
 
-            <!-- Best Local Foods Panel -->
-            <div class="bg-neutral-card rounded-xl shadow-sm border border-stone-200 p-5">
-                <div class="flex items-center gap-3 border-b border-stone-100 pb-3 mb-4">
+            <!-- Local Foods -->
+            <section class="bg-neutral-card rounded-2xl shadow-sm ring-1 ring-stone-200/70 p-4 sm:p-5">
+                <div class="flex items-center gap-2.5 border-b border-stone-100 pb-3 mb-4">
                     <span class="text-xl unicode-icon">🥡</span>
                     <h3 class="text-sm font-bold text-text-main">
-                        <span id="lbl-food-title" class="text-accent-teal font-extrabold">目的地</span> 周邊嚴選小吃
+                        <span id="lbl-food-title" class="text-accent-teal font-black">目的地</span> 周邊嚴選小吃
                     </h3>
                 </div>
-                
-                <ul id="food-box" class="space-y-2.5">
-                </ul>
-            </div>
-
-        </section>
+                <ul id="food-box" class="space-y-2.5"></ul>
+                <p class="mt-3 text-[10px] text-text-muted text-center">✓ 以下店家週六、週日皆有營業</p>
+            </section>
+        </div>
     </main>
 
-    <!-- Food Details Pop-up Modal -->
-    <div id="food-modal" class="modal-overlay fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="closeFoodModal()">
-        <div id="food-modal-box" class="modal-content-box bg-neutral-card rounded-2xl border border-stone-200 max-w-md w-full p-6 shadow-2xl relative scale-down opacity-0" onclick="event.stopPropagation()">
-            <button onclick="closeFoodModal()" class="absolute top-4 right-4 text-text-muted hover:text-text-main text-2xl transition-colors focus:outline-none" aria-label="Close food modal">
-                &times;
-            </button>
-            <div class="flex items-center gap-3.5 border-b border-stone-150 pb-4 mb-4">
-                <span class="text-4xl unicode-icon">🍱</span>
-                <div>
-                    <div class="flex items-center gap-1.5">
-                        <span id="food-modal-tag" class="text-[10px] font-bold tracking-wider text-accent-teal uppercase bg-emerald-100/60 px-2 py-0.5 rounded">招牌小吃</span>
-                        <span id="food-modal-rating" class="text-[10px] font-bold text-amber-600 bg-amber-100 px-2 py-0.5 rounded flex items-center gap-0.5">⭐ 4.2+</span>
+    <footer class="w-full max-w-6xl mx-auto px-4 sm:px-6 py-5 text-center text-[11px] text-text-muted">
+        高雄都會輕旅大眾運輸互動導航 · 點擊美食卡片可開啟 Google Map 導航
+    </footer>
+
+    <!-- Food Details Modal -->
+    <div id="food-modal" class="modal-overlay fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 hidden" onclick="closeFoodModal()">
+        <div id="food-modal-box" class="modal-content-box bg-neutral-card rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md p-5 sm:p-6 pb-7 shadow-2xl relative scale-down opacity-0 max-h-[88vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+            <div class="sm:hidden w-10 h-1 rounded-full bg-stone-300 mx-auto mb-3"></div>
+            <button onclick="closeFoodModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 text-text-muted hover:text-text-main flex items-center justify-center text-xl transition-colors focus:outline-none z-10" aria-label="關閉">&times;</button>
+            <div class="flex items-center gap-3.5 border-b border-stone-150 pb-4 mb-4 pr-8">
+                <span class="text-4xl unicode-icon flex-shrink-0">🍱</span>
+                <div class="min-w-0">
+                    <div class="flex items-center gap-1.5 flex-wrap">
+                        <span id="food-modal-tag" class="text-[10px] font-bold tracking-wide text-accent-teal bg-emerald-100/70 px-2 py-0.5 rounded">招牌小吃</span>
+                        <span id="food-modal-rating" class="text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded">⭐ 4.2+</span>
                     </div>
-                    <h3 id="food-modal-title" class="text-xl font-bold text-text-main mt-1">店名</h3>
+                    <h3 id="food-modal-title" class="text-xl font-black text-text-main mt-1 leading-tight">店名</h3>
                 </div>
             </div>
-            <div class="space-y-4 max-h-[320px] overflow-y-auto pr-1">
+            <div class="space-y-4 overflow-y-auto pr-1 -mr-1">
                 <div>
                     <h4 class="text-xs font-bold text-text-muted uppercase mb-1">📋 店家與美味特色</h4>
-                    <p id="food-modal-desc" class="text-xs text-text-main leading-relaxed text-stone-600"></p>
+                    <p id="food-modal-desc" class="text-[13px] text-stone-600 leading-relaxed"></p>
                 </div>
-                <div class="grid grid-cols-2 gap-3 bg-stone-50 p-3 rounded-xl border border-stone-150">
+                <div class="grid grid-cols-1 xs:grid-cols-2 gap-3 bg-stone-50 p-3.5 rounded-2xl ring-1 ring-stone-150">
                     <div>
                         <h4 class="text-[10px] font-bold text-text-muted uppercase">⭐ 招牌必點</h4>
-                        <p id="food-modal-must" class="text-xs text-accent-teal font-semibold mt-0.5"></p>
+                        <p id="food-modal-must" class="text-[13px] text-accent-teal font-semibold mt-0.5"></p>
                     </div>
                     <div>
-                        <h4 class="text-[10px] font-bold text-text-muted uppercase">🕒 營業時間</h4>
-                        <p id="food-modal-hours" class="text-xs text-stone-600 mt-0.5"></p>
+                        <h4 class="text-[10px] font-bold text-text-muted uppercase mt-1 xs:mt-0">🕒 營業時間</h4>
+                        <p id="food-modal-hours" class="text-[13px] text-stone-600 mt-0.5"></p>
                     </div>
                 </div>
                 <div>
-                    <h4 class="text-xs font-bold text-text-muted uppercase mb-1">📍 步行指南 (從飯店或當前目的地出發)</h4>
-                    <p id="food-modal-foot" class="text-xs text-stone-600 leading-relaxed"></p>
+                    <h4 class="text-xs font-bold text-text-muted uppercase mb-1">📍 步行指南</h4>
+                    <p id="food-modal-foot" class="text-[13px] text-stone-600 leading-relaxed"></p>
                 </div>
             </div>
             <div class="mt-5 pt-4 border-t border-stone-150">
-                <a id="food-modal-map-btn" href="#" target="_blank" class="w-full bg-accent-teal hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5">
+                <a id="food-modal-map-btn" href="#" target="_blank" rel="noopener" class="w-full bg-accent-teal hover:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-colors shadow-sm flex items-center justify-center gap-2 active:scale-[0.99]">
                     🧭 開啟 Google Map 導航
                 </a>
             </div>
         </div>
     </div>
 
-    <!-- Landmark Details Pop-up Modal -->
-    <div id="detail-modal" class="modal-overlay fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden" onclick="closeModalOnOutsideClick(event)">
-        <div id="modal-box" class="modal-content-box bg-neutral-card rounded-2xl border border-stone-200 max-w-md w-full p-6 shadow-2xl relative scale-down opacity-0" onclick="event.stopPropagation()">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-text-muted hover:text-text-main text-2xl transition-colors focus:outline-none" aria-label="Close modal">
-                &times;
-            </button>
-            <div class="flex items-center gap-3.5 border-b border-stone-150 pb-4 mb-4">
-                <span id="modal-icon" class="text-4xl unicode-icon">📍</span>
-                <div>
-                    <span id="modal-category" class="text-[10px] font-bold tracking-wider text-accent-warm uppercase bg-orange-100/60 px-2 py-0.5 rounded">類別</span>
-                    <h3 id="modal-title" class="text-xl font-bold text-text-main mt-1">地點名稱</h3>
+    <!-- Landmark Details Modal -->
+    <div id="detail-modal" class="modal-overlay fixed inset-0 bg-stone-900/60 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center sm:p-4 hidden" onclick="closeModalOnOutsideClick(event)">
+        <div id="modal-box" class="modal-content-box bg-neutral-card rounded-t-3xl sm:rounded-3xl w-full sm:max-w-md p-5 sm:p-6 pb-7 shadow-2xl relative scale-down opacity-0 max-h-[88vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+            <div class="sm:hidden w-10 h-1 rounded-full bg-stone-300 mx-auto mb-3"></div>
+            <button onclick="closeModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-stone-100 text-text-muted hover:text-text-main flex items-center justify-center text-xl transition-colors focus:outline-none z-10" aria-label="關閉">&times;</button>
+            <div class="flex items-center gap-3.5 border-b border-stone-150 pb-4 mb-4 pr-8">
+                <span id="modal-icon" class="text-4xl unicode-icon flex-shrink-0">📍</span>
+                <div class="min-w-0">
+                    <span id="modal-category" class="text-[10px] font-bold tracking-wide text-accent-warm bg-orange-100/70 px-2 py-0.5 rounded">類別</span>
+                    <h3 id="modal-title" class="text-xl font-black text-text-main mt-1 leading-tight">地點名稱</h3>
                 </div>
             </div>
-            <div class="space-y-4 max-h-[320px] overflow-y-auto pr-1">
+            <div class="space-y-4 overflow-y-auto pr-1 -mr-1">
                 <div>
                     <h4 class="text-xs font-bold text-text-muted uppercase mb-1">📝 地點特色簡介</h4>
-                    <p id="modal-desc" class="text-xs text-text-main leading-relaxed text-stone-600"></p>
+                    <p id="modal-desc" class="text-[13px] text-stone-600 leading-relaxed"></p>
                 </div>
                 <div>
-                    <h4 class="text-xs font-bold text-text-muted uppercase mb-2">🍢 嚴選推薦美食 (含 Google 評分)</h4>
-                    <ul id="modal-food-list" class="space-y-2">
-                    </ul>
+                    <h4 class="text-xs font-bold text-text-muted uppercase mb-2">🍢 嚴選推薦美食（含 Google 評分）</h4>
+                    <ul id="modal-food-list" class="space-y-2"></ul>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-stone-150">
-                <button id="modal-btn-start" onclick="setPointFromModal('start')" class="bg-accent-teal hover:bg-emerald-800 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5">
-                    🟢 設為起點
-                </button>
-                <button id="modal-btn-end" onclick="setPointFromModal('end')" class="bg-accent-warm hover:bg-orange-700 text-white font-bold py-2.5 px-4 rounded-xl text-xs transition-colors shadow-sm flex items-center justify-center gap-1.5">
-                    🔴 設為終點
-                </button>
+            <div class="grid grid-cols-2 gap-3 mt-5 pt-4 border-t border-stone-150">
+                <button id="modal-btn-start" onclick="setPointFromModal('start')" class="bg-accent-teal hover:bg-emerald-800 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-colors shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.99]">🟢 設為起點</button>
+                <button id="modal-btn-end" onclick="setPointFromModal('end')" class="bg-accent-warm hover:bg-orange-700 text-white font-bold py-3.5 px-4 rounded-2xl text-sm transition-colors shadow-sm flex items-center justify-center gap-1.5 active:scale-[0.99]">🔴 設為終點</button>
             </div>
         </div>
     </div>
 
     <script>
-        // Coordinates corresponding to relative geography positions (upper North, lower South)
         const nodeCoordinates = {
             arrival: { x: 300, y: 67.5 },
             station: { x: 300, y: 150 },
@@ -378,7 +377,6 @@
             exhibition: { x: 450, y: 328.5 }
         };
 
-        // Fully scanned database with strictly only Saturday/Sunday open restaurants.
         const spots = {
             arrival: {
                 name: '高鐵左營站',
@@ -386,8 +384,8 @@
                 icon: '🚄',
                 desc: '本島旅客探訪高雄的最主要入口。高鐵站內無縫對接捷運紅線 (R16)，讓您不需走到戶外吹風淋雨，便能直達市區各主要景點。',
                 food: [
-                    { 
-                        name: '環球購物中心（左營店）', 
+                    {
+                        name: '環球購物中心（左營店）',
                         tag: '三鐵共構商場',
                         rating: '⭐ 4.1',
                         note: '高鐵站大廳與台鐵共構區，有眾多品牌，適合快速用餐或購買伴手禮。',
@@ -404,8 +402,8 @@
                 icon: '🚂',
                 desc: '高雄鐵路運輸的核心。新火車站與捷運紅線高雄車站 (R11) 站內無縫共構，下沉式的綠意大廳與流線雲頂天棚更是高雄最新的當代地標建築。',
                 food: [
-                    { 
-                        name: '驛站食堂', 
+                    {
+                        name: '驛站食堂',
                         tag: '復古懷舊台菜',
                         rating: '⭐ 4.2',
                         note: '老街旁三十年懷舊台式老食堂，招牌紅糟肉與客家熱炒口味道地。',
@@ -422,8 +420,8 @@
                 icon: '🏨',
                 desc: '位於歷史悠久的鹽埕老街區。飯店不僅坐享優渥的歷史人文氣息，更被高密度的經典古早味與 Google 高評價名店包圍！且皆於六日大方營業。',
                 food: [
-                    { 
-                        name: '港園牛肉麵', 
+                    {
+                        name: '港園牛肉麵',
                         tag: '破萬則 4.2星名店',
                         rating: '⭐ 4.2',
                         note: '在地經營超過一甲子，招牌「牛肉拌麵」與豬腳拌麵是老饕與國內外遊客必吃代表。',
@@ -432,8 +430,8 @@
                         hours: '10:30 - 20:00 (六日皆營業)',
                         foot: '從漢王洲際飯店大門出發，沿五福四路向東步行至大成街右轉直行，步行約 6 分鐘即可抵達（約 450 公尺）。'
                     },
-                    { 
-                        name: '廣東汕頭味味香牛羊豬肉爐', 
+                    {
+                        name: '廣東汕頭味味香牛羊豬肉爐',
                         tag: '高人氣 4.3星汕頭鍋',
                         rating: '⭐ 4.3',
                         note: '在地人激推的汕頭火鍋老店！扁魚湯頭極度甘甜，手工切牛肉與沙茶熱炒生意爆好。',
@@ -442,18 +440,18 @@
                         hours: '11:00 - 14:00, 17:00 - 24:00 (六日皆營業)',
                         foot: '從漢王洲際飯店大門出發，沿富野路或大仁路步行，就在富野路與瀨南街口附近，步行約 4 分鐘即抵。'
                     },
-                    { 
-                        name: '永和小籠湯包', 
+                    {
+                        name: '永和小籠湯包',
                         tag: '隱藏巷弄 4.4星爆漿包',
                         rating: '⭐ 4.4',
                         note: '隱身鹽埕街巷弄的排隊攤位，純手工現場現包現蒸，湯汁飽滿、皮薄餡多口碑極佳。',
                         desc: '主打高 CP 值的爆漿手工小籠湯包。攤位就在巷弄路邊，路過就能看見蒸籠白煙裊裊。小籠包皮薄如紙，內餡飽滿且帶有非常豐沛的鮮美湯汁，咬開時必須用湯匙接著，搭配薑絲與黑醋極度過癮。週二公休，六日皆有營業。',
                         must: '手工小籠湯包、酸辣湯',
                         hours: '11:00 - 16:00 (週二公休，六日照常售完為止)',
-                        foot: '從漢王洲際飯店大門出發，沿五福四路向東步行 2 分鐘，至鹽埕街左轉進巷子即可看見，步行約 3 三分鐘。'
+                        foot: '從漢王洲際飯店大門出發，沿五福四路向東步行 2 分鐘，至鹽埕街左轉進巷子即可看見，步行約 3 分鐘。'
                     },
-                    { 
-                        name: '姊妹老五冷飲早餐店', 
+                    {
+                        name: '姊妹老五冷飲早餐店',
                         tag: '50年傳統早餐店',
                         rating: '⭐ 4.0',
                         note: '飯店後方極具人氣的傳統早餐，必點「烘蛋漢堡」與手作蛋餅，古早味紅茶奶茶極香。',
@@ -462,8 +460,8 @@
                         hours: '週一至週六 06:00 - 18:00, 週日 06:00 - 14:00 (六日皆營業！)',
                         foot: '就在漢王洲際飯店後方巷弄！出飯店大門左轉，至七賢三路口左轉步行約 1 分鐘內即達。'
                     },
-                    { 
-                        name: '冬粉王', 
+                    {
+                        name: '冬粉王',
                         tag: '50年古早味冬粉專賣',
                         rating: '⭐ 4.1',
                         note: '鹽埕在地無人不曉的老字號冬粉，招牌鴨肉冬粉與綜合豬雜切盤是經典美味。',
@@ -472,8 +470,8 @@
                         hours: '08:30 - 20:00 (六日皆營業)',
                         foot: '從漢王洲際飯店大門出發，向北沿七賢三路直行約 4 分鐘（約 300 公尺），「冬粉王」大型店面即在您的右手邊。'
                     },
-                    { 
-                        name: '黑乾溫州餛飩大王', 
+                    {
+                        name: '黑乾溫州餛飩大王',
                         tag: '飄香一甲子深夜食堂',
                         rating: '⭐ 4.1',
                         note: '大仁路排隊傳奇老店！主打巨無霸餛飩，酥脆現炸餛飩乾麵更是高雄深夜宵夜首選。',
@@ -482,8 +480,8 @@
                         hours: '16:30 - 00:00 (週四公休，六日皆營業)',
                         foot: '從漢王洲際飯店大門出發，沿五福四路向西步行，至瀨南街右轉直行，再左轉至大仁路即可抵達，步行時間約 5 分鐘。'
                     },
-                    { 
-                        name: '大力果汁五福店', 
+                    {
+                        name: '大力果汁五福店',
                         tag: '南部經典新鮮現打果汁',
                         rating: '⭐ 4.4',
                         note: '高雄高人氣現打果汁專賣！精挑細選當季新鮮水果，綜合果汁濃郁爽口，消暑第一名。',
@@ -492,8 +490,8 @@
                         hours: '10:30 - 21:00 (六日皆營業)',
                         foot: '出漢王洲際飯店大門後，右轉沿五福四路往西子灣方向直行，過建國四路路口後即可在左側三角窗看到紅色招牌，步行約 3 分鐘。'
                     },
-                    { 
-                        name: '冠瑋牛肉麵', 
+                    {
+                        name: '冠瑋牛肉麵',
                         tag: '新樂街隱藏版實力老店',
                         rating: '⭐ 4.3',
                         note: '低調卻深藏不露的牛肉麵！牛肉厚重軟爛，清甜高湯配上手炒辣牛油酸菜香氣四溢。',
@@ -502,8 +500,8 @@
                         hours: '11:30 - 20:00 (週五休息，六日皆營業)',
                         foot: '從漢王洲際飯店大門出發，向北沿七賢三路直行 2 分鐘，右轉新樂街即可看見，步行僅約 3 分鐘 (約 200 公尺)。'
                     },
-                    { 
-                        name: '金溫州餛飩大王', 
+                    {
+                        name: '金溫州餛飩大王',
                         tag: '傳統手工餛飩',
                         rating: '⭐ 4.1',
                         note: '老街區窄巷排隊傳奇，巨無霸餛飩皮薄餡多，現炸金黃排骨酥香無比。',
@@ -512,8 +510,8 @@
                         hours: '平日 14:00 - 20:30, 假日(六日) 11:30 - 20:30 (週末提早營業)',
                         foot: '從漢王洲際飯店出發，向北沿七賢三路直行，至新樂街右轉並於163巷進入，步行約 2 分鐘即達。'
                     },
-                    { 
-                        name: '大ㄎㄡ胖碳烤三明治', 
+                    {
+                        name: '大ㄎㄡ胖碳烤三明治',
                         tag: '碳烤三明治始祖',
                         rating: '⭐ 4.1',
                         note: '炭香三明治排隊老店，現烤吐司抹上滑順香美美乃滋，夾入煎火腿與嫩煎蛋。',
@@ -522,8 +520,8 @@
                         hours: '07:00 - 10:50, 18:00 - 22:50 (六日皆營業)',
                         foot: '飯店大門向北沿七賢三路直行，右轉大公路即可看見招牌，步行時間約 4 分鐘 (約 300 公尺)。'
                     },
-                    { 
-                        name: '下一鍋水煎包', 
+                    {
+                        name: '下一鍋水煎包',
                         tag: '大禮街秒殺餐點',
                         rating: '⭐ 4.2',
                         note: '底部煎得金黃酥脆，內餡充滿鮮甜高麗菜，是極佳的下午茶點心（建議先電話預訂）。',
@@ -532,8 +530,8 @@
                         hours: '14:00 - 18:30 (週一公休，六日皆有營業)',
                         foot: '從漢王洲際飯店大門出發，沿七賢三路往南直行，左轉大禮街直行，步行約 6 分鐘 (約 450 公尺) 即可在攤位前看到排隊人潮。'
                     },
-                    { 
-                        name: '鴨肉珍', 
+                    {
+                        name: '鴨肉珍',
                         tag: '米其林必比登推介',
                         rating: '⭐ 4.2',
                         note: '傳承超過一甲子的鹽埕老店，切盤鴨肉肥美、鴨肉飯肉燥濃郁，是高雄小吃必吃。',
@@ -550,8 +548,8 @@
                 icon: '🎨',
                 desc: '由舊倉庫改建的文創基地，大義倉庫旁設有大港橋，週末有熱門餐車與手作創意市集。六日全天熱烈擁擠。',
                 food: [
-                    { 
-                        name: 'Kyomo Pasta 義大利麵専売', 
+                    {
+                        name: 'Kyomo Pasta 義大利麵専売',
                         tag: '日本主廚和風義麵',
                         rating: '⭐ 4.4',
                         note: '日本主廚親自掌廚的和風義大利麵！柚子胡椒、明太子與拿坡里肉醬深受老饕喜愛。',
@@ -560,8 +558,8 @@
                         hours: '17:00 - 22:00 (週三公休，六日照常營業)',
                         foot: '出輕軌【駁二大義站 (C12)】後步行僅 2 分鐘（約 150 公尺）。'
                     },
-                    { 
-                        name: '桂桃嬤販麵洋行', 
+                    {
+                        name: '桂桃嬤販麵洋行',
                         tag: '深夜潮派南洋鍋燒',
                         rating: '⭐ 4.1',
                         note: '大義街人氣宵夜，台式復古鍋燒意麵與椰香叻沙、南洋肉骨茶的完美混血。',
@@ -570,8 +568,8 @@
                         hours: '17:30 - 00:00 (六日無休)',
                         foot: '出輕軌【駁二大義站 (C12)】後向北步行約 3 分鐘即可抵達。'
                     },
-                    { 
-                        name: '微熱山丘（高雄駁二特區）', 
+                    {
+                        name: '微熱山丘（高雄駁二特區）',
                         tag: '免費奉茶與經典鳳梨酥',
                         rating: '⭐ 4.4',
                         note: '在大義紅磚倉庫中免費品嚐台灣高人氣鳳梨酥，附上一杯溫熱烏龍茶。',
@@ -588,8 +586,8 @@
                 icon: '🏛️',
                 desc: '全台灣首座臨海多功能展覽館，波浪形曲面外觀非常壯觀。館外可飽覽高雄港灣絕美落日，週末臨港餐酒館極富浪漫氛圍。',
                 food: [
-                    { 
-                        name: 'Belon貝隆餐廳', 
+                    {
+                        name: 'Belon貝隆餐廳',
                         tag: '臨海浪漫法式餐酒館',
                         rating: '⭐ 4.2',
                         note: '展館正後方遊艇碼頭，品嚐法國空運鮮生蠔、精緻排餐與燉飯，坐看夕陽海景。',
@@ -598,8 +596,8 @@
                         hours: '週日至週四 16:30 - 01:00, 週五至週六 16:30 - 01:30 (週末熱烈營業！)',
                         foot: '從高雄展覽館正門出來後，繞至展館正後方遊艇碼頭岸邊，步行僅需 2 分鐘（約 150 公尺）。'
                     },
-                    { 
-                        name: 'Sauga鯊加碼頭餐酒館', 
+                    {
+                        name: 'Sauga鯊加碼頭餐酒館',
                         tag: '全海景貨櫃餐酒',
                         rating: '⭐ 4.3',
                         note: '高雄最頂級的 360 度環繞海景貨櫃餐廳！適合在遊艇碼頭旁一邊品酒一邊賞夕陽。',
@@ -612,19 +610,18 @@
             }
         };
 
-        // All 25 double-directional combinations between the 5 key nodes
         const routesData = {
             'arrival': {
-                'arrival': { time: '0 分鐘', type: '原地', color: '#6E6963', badge: 'bg-stone-500', path: [],
+                'arrival': { time: '0 分鐘', type: '原地', color: '#79736B', badge: 'bg-stone-500', path: [],
                     steps: [{ icon: '📍', title: '目前已在起點', desc: '您正處於高鐵左營站內。' }]
                 },
-                'station': { time: '10 分鐘', type: '捷運直達', color: '#E13B30', badge: 'bg-mrt-red',
+                'station': { time: '10 分鐘', type: '捷運直達', color: '#E1392E', badge: 'bg-mrt-red',
                     path: ['arrival', 'station'],
                     steps: [
                         { icon: '🚇', title: '搭乘捷運紅線', desc: '由【左營站 (R16)】搭紅線南下直達【高雄車站 (R11)】。' }
                     ]
                 },
-                'hotel': { time: '30 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'hotel': { time: '30 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['arrival', 'station', 'formosa', 'hotel'],
                     steps: [
                         { icon: '🚇', title: '搭乘捷運紅線', desc: '由【左營站 (R16)】搭乘紅線往小港方向，至【美麗島站 (R10)】。' },
@@ -633,7 +630,7 @@
                         { icon: '🚶', title: '步行至飯店', desc: '出站沿大勇路往南步行 3 分鐘，至七賢三路口即抵達漢王洲際飯店。' }
                     ]
                 },
-                'pier2': { time: '35 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'pier2': { time: '35 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['arrival', 'station', 'formosa', 'hotel', 'pier2'],
                     steps: [
                         { icon: '🚇', title: '搭乘捷運紅線', desc: '由【左營站 (R16)】搭紅線南下至【美麗島站 (R10)】。' },
@@ -641,7 +638,7 @@
                         { icon: '🚶', title: '漫步至駁二大義區', desc: '由 1 號出口出站，沿大勇路往港區步行 8 分鐘即抵達駁二大義倉庫。' }
                     ]
                 },
-                'exhibition': { time: '35 分鐘', type: '捷運直達', color: '#E13B30', badge: 'bg-mrt-red',
+                'exhibition': { time: '35 分鐘', type: '捷運直達', color: '#E1392E', badge: 'bg-mrt-red',
                     path: ['arrival', 'station', 'formosa', 'exhibition'],
                     steps: [
                         { icon: '🚇', title: '捷運紅線直達', desc: '由【左營站 (R16)】搭乘紅線往南直達【三多商圈站 (R8)】下車。' },
@@ -650,16 +647,16 @@
                 }
             },
             'station': {
-                'arrival': { time: '10 分鐘', type: '捷運直達', color: '#E13B30', badge: 'bg-mrt-red',
+                'arrival': { time: '10 分鐘', type: '捷運直達', color: '#E1392E', badge: 'bg-mrt-red',
                     path: ['station', 'arrival'],
                     steps: [
                         { icon: '🚇', title: '搭乘捷運紅線', desc: '由捷運【高雄車站 (R11)】搭乘紅線北上直達【左營站 (R16)】下車。' }
                     ]
                 },
-                'station': { time: '0 分鐘', type: '原地', color: '#6E6963', badge: 'bg-stone-500', path: [],
+                'station': { time: '0 分鐘', type: '原地', color: '#79736B', badge: 'bg-stone-500', path: [],
                     steps: [{ icon: '🚂', title: '已抵達高雄火車站', desc: '目前已到達市中心鐵路交通樞紐。' }]
                 },
-                'hotel': { time: '15 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'hotel': { time: '15 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['station', 'formosa', 'hotel'],
                     steps: [
                         { icon: '🚇', title: '搭乘捷運紅線', desc: '由【高雄車站 (R11)】搭紅線往南至【美麗島站 (R10)】。' },
@@ -667,7 +664,7 @@
                         { icon: '🚶', title: '步行至飯店', desc: '由鹽埕埔站 4 號出口出站，大勇路往南步行 3 分鐘即可抵達漢王飯店。' }
                     ]
                 },
-                'pier2': { time: '20 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'pier2': { time: '20 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['station', 'formosa', 'hotel', 'pier2'],
                     steps: [
                         { icon: '🚇', title: '搭乘捷運紅線', desc: '由【高雄車站 (R11)】搭紅線往南至【美麗島站 (R10)】。' },
@@ -675,7 +672,7 @@
                         { icon: '🚶', title: '步行至駁二', desc: '由 1 號出口出站，沿大勇路往港區步行 8 分鐘抵達駁二大義區。' }
                     ]
                 },
-                'exhibition': { time: '20 分鐘', type: '捷運直達', color: '#E13B30', badge: 'bg-mrt-red',
+                'exhibition': { time: '20 分鐘', type: '捷運直達', color: '#E1392E', badge: 'bg-mrt-red',
                     path: ['station', 'formosa', 'exhibition'],
                     steps: [
                         { icon: '🚇', title: '捷運紅線直達', desc: '由【高雄車站 (R11)】搭乘紅線往南直達【三多商圈站 (R8)】。' },
@@ -684,7 +681,7 @@
                 }
             },
             'hotel': {
-                'arrival': { time: '30 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'arrival': { time: '30 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['hotel', 'formosa', 'station', 'arrival'],
                     steps: [
                         { icon: '🚶', title: '步行至捷運站', desc: '由飯店沿大勇路北向步行 3 分鐘抵達捷運【鹽埕埔站 (O2)】。' },
@@ -692,7 +689,7 @@
                         { icon: '🔄', title: '轉乘紅線北上', desc: '站內轉乘紅線（往岡山方向），直達捷運【左營站 (R16)】下車。' }
                     ]
                 },
-                'station': { time: '15 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'station': { time: '15 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['hotel', 'formosa', 'station'],
                     steps: [
                         { icon: '🚶', title: '步行至捷運站', desc: '由飯店沿大勇路北向步行 3 分鐘抵達捷運【鹽埕埔站 (O2)】。' },
@@ -700,17 +697,17 @@
                         { icon: '🔄', title: '轉紅線往北', desc: '站內轉乘紅線（往岡山/左營方向），乘車至【高雄車站 (R11)】即達。' }
                     ]
                 },
-                'hotel': { time: '0 分鐘', type: '原地', color: '#6E6963', badge: 'bg-stone-500', path: [],
+                'hotel': { time: '0 分鐘', type: '原地', color: '#79736B', badge: 'bg-stone-500', path: [],
                     steps: [{ icon: '🏨', title: '您已在住宿飯店', desc: '這是您本次旅程的核心駐泊點。' }]
                 },
-                'pier2': { time: '6 分鐘', type: '徒步走廊', color: '#6E6963', badge: 'bg-stone-600',
+                'pier2': { time: '6 分鐘', type: '徒步走廊', color: '#79736B', badge: 'bg-stone-600',
                     path: ['hotel', 'pier2'],
                     steps: [
                         { icon: '🚶', title: '沿五福四路/大義街前行', desc: '從飯店出發向東步行，右轉進入大義街。' },
                         { icon: '🎨', title: '抵達駁二倉庫群', desc: '直行步行約 5-8 分鐘即可直接進入駁二大義特區與大港橋畔。' }
                     ]
                 },
-                'exhibition': { time: '16 分鐘', type: '輕軌線直達', color: '#239343', badge: 'bg-lrt-green',
+                'exhibition': { time: '16 分鐘', type: '輕軌線直達', color: '#1FA14C', badge: 'bg-lrt-green',
                     path: ['hotel', 'pier2', 'exhibition'],
                     steps: [
                         { icon: '🚶', title: '步行至輕軌站', desc: '由飯店步行 8 分鐘至輕軌【駁二大義站 (C12)】。' },
@@ -720,31 +717,31 @@
                 }
             },
             'pier2': {
-                'arrival': { time: '35 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'arrival': { time: '35 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['pier2', 'hotel', 'formosa', 'station', 'arrival'],
                     steps: [
                         { icon: '🚶', title: '步行至捷運鹽埕埔站', desc: '沿大勇路北向步行 8 分鐘至捷運【鹽埕埔站】。' },
                         { icon: '🚇', title: '搭乘橘線至美麗島', desc: '搭橘線往大寮至【美麗島站】，站內轉紅線北上至【左營站】。' }
                     ]
                 },
-                'station': { time: '20 分鐘', type: '捷運轉乘', color: '#F49E17', badge: 'bg-mrt-orange',
+                'station': { time: '20 分鐘', type: '捷運轉乘', color: '#F09A1A', badge: 'bg-mrt-orange',
                     path: ['pier2', 'hotel', 'formosa', 'station'],
                     steps: [
                         { icon: '🚶', title: '步行至捷運鹽埕埔站', desc: '沿大勇路北向步行 8 分鐘至捷運【鹽埕埔站 (O2)】。' },
                         { icon: '🚇', title: '搭乘橘線至美麗島', desc: '搭橘線至【美麗島站】，站內轉紅線北上至【高雄車站 (R11)】。' }
                     ]
                 },
-                'hotel': { time: '6 分鐘', type: '徒步走廊', color: '#6E6963', badge: 'bg-stone-600',
+                'hotel': { time: '6 分鐘', type: '徒步走廊', color: '#79736B', badge: 'bg-stone-600',
                     path: ['pier2', 'hotel'],
                     steps: [
                         { icon: '🚶', title: '大義街北向步行', desc: '沿大義街向北行進，過五福四路口。' },
                         { icon: '🏨', title: '抵達漢王飯店', desc: '步行 5-8 分鐘即可看到飯店大廳，非常便捷。' }
                     ]
                 },
-                'pier2': { time: '0 分鐘', type: '原地', color: '#6E6963', badge: 'bg-stone-500', path: [],
+                'pier2': { time: '0 分鐘', type: '原地', color: '#79736B', badge: 'bg-stone-500', path: [],
                     steps: [{ icon: '🎨', title: '已抵達駁二特區', desc: '您正身處充滿文創生命力的駁二特區。' }]
                 },
-                'exhibition': { time: '10 分鐘', type: '輕軌線直達', color: '#239343', badge: 'bg-lrt-green',
+                'exhibition': { time: '10 分鐘', type: '輕軌線直達', color: '#1FA14C', badge: 'bg-lrt-green',
                     path: ['pier2', 'exhibition'],
                     steps: [
                         { icon: '🚃', title: '搭乘輕軌直達', desc: '由【駁二大義站 (C12)】搭輕軌（逆行往凱旋公園）直達【高雄展覽館站 (C8)】。' }
@@ -752,34 +749,34 @@
                 }
             },
             'exhibition': {
-                'arrival': { time: '35 分鐘', type: '捷運直達', color: '#E13B30', badge: 'bg-mrt-red',
+                'arrival': { time: '35 分鐘', type: '捷運直達', color: '#E1392E', badge: 'bg-mrt-red',
                     path: ['exhibition', 'formosa', 'arrival'],
                     steps: [
                         { icon: '🚶', title: '步行至捷運三多商圈站', desc: '沿新光路東向直行 10 分鐘至捷運【三多商圈站 (R8)】。' },
                         { icon: '🚇', title: '搭紅線直達左營', desc: '搭捷運紅線北上列車，直達【左營站 (R16)】下車。' }
                     ]
                 },
-                'station': { time: '20 分鐘', type: '捷運直達', color: '#E13B30', badge: 'bg-mrt-red',
+                'station': { time: '20 分鐘', type: '捷運直達', color: '#E1392E', badge: 'bg-mrt-red',
                     path: ['exhibition', 'formosa', 'station'],
                     steps: [
                         { icon: '🚶', title: '步行至捷運三多商圈站', desc: '由高雄展覽館沿新光路東向直行 10 分鐘至捷運【三多商圈站 (R8)】。' },
                         { icon: '🚇', title: '搭紅線直達火車站', desc: '搭捷運紅線北上列車，乘車至【高雄車站 (R11)】下車即達。' }
                     ]
                 },
-                'hotel': { time: '16 分鐘', type: '輕軌轉乘', color: '#239343', badge: 'bg-lrt-green',
+                'hotel': { time: '16 分鐘', type: '輕軌轉乘', color: '#1FA14C', badge: 'bg-lrt-green',
                     path: ['exhibition', 'pier2', 'hotel'],
                     steps: [
                         { icon: '🚃', title: '搭乘輕軌線', desc: '由【高雄展覽館站 (C8)】搭輕軌「順行方向」至【駁二大義站 (C12)】。' },
                         { icon: '🚶', title: '步行返回飯店', desc: '出站沿大義街向北步行 8 分鐘即返抵漢王洲際飯店。' }
                     ]
                 },
-                'pier2': { time: '10 分鐘', type: '輕軌直達', color: '#239343', badge: 'bg-lrt-green',
+                'pier2': { time: '10 分鐘', type: '輕軌直達', color: '#1FA14C', badge: 'bg-lrt-green',
                     path: ['exhibition', 'pier2'],
                     steps: [
                         { icon: '🚃', title: '輕軌直達駁二', desc: '在【高雄展覽館站 (C8)】搭乘順行輕軌至【駁二大義站 (C12)】。' }
                     ]
                 },
-                'exhibition': { time: '0 分鐘', type: '原地', color: '#6E6963', badge: 'bg-stone-500', path: [],
+                'exhibition': { time: '0 分鐘', type: '原地', color: '#79736B', badge: 'bg-stone-500', path: [],
                     steps: [{ icon: '🏛️', title: '已在高雄展覽館', desc: '目前已到達臨海的地標展覽館現場。' }]
                 }
             }
@@ -795,36 +792,42 @@
         function init() {
             canvas = document.getElementById('mapCanvas');
             ctx = canvas.getContext('2d');
-            
+
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
-            
+
             updateDashboard();
             animate();
         }
 
         function resizeCanvas() {
             const rect = canvas.parentNode.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
             drawMapBackground();
+        }
+
+        function cssSize() {
+            const rect = canvas.parentNode.getBoundingClientRect();
+            return { w: rect.width, h: rect.height };
         }
 
         function getCanvasCoords(pointId) {
             const coord = nodeCoordinates[pointId];
             if (!coord) return { x: 0, y: 0 };
-            
-            const scaleX = canvas.width / 600;
-            const scaleY = canvas.height / 450;
+            const { w, h } = cssSize();
             return {
-                x: coord.x * scaleX,
-                y: coord.y * scaleY
+                x: coord.x * (w / 600),
+                y: coord.y * (h / 450)
             };
         }
 
         function drawMapBackground() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
+            const { w, h } = cssSize();
+            ctx.clearRect(0, 0, w, h);
+
             const pZuoying = getCanvasCoords('arrival');
             const pStation = getCanvasCoords('station');
             const pFormosa = getCanvasCoords('formosa');
@@ -832,37 +835,38 @@
             const pPier2 = getCanvasCoords('pier2');
             const pExhibition = getCanvasCoords('exhibition');
 
-            // Red Line (捷運紅線)
+            // Red Line
             ctx.beginPath();
             ctx.moveTo(pZuoying.x, pZuoying.y);
             ctx.lineTo(pStation.x, pStation.y);
             ctx.lineTo(pFormosa.x, pFormosa.y);
-            ctx.strokeStyle = 'rgba(225, 59, 48, 0.2)';
+            ctx.strokeStyle = 'rgba(225, 57, 46, 0.22)';
             ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
             ctx.stroke();
 
-            // Orange Line (捷運橘線)
+            // Orange Line
             ctx.beginPath();
             ctx.moveTo(pFormosa.x, pFormosa.y);
             ctx.lineTo(pHotel.x, pHotel.y);
-            ctx.strokeStyle = 'rgba(244, 158, 23, 0.2)';
+            ctx.strokeStyle = 'rgba(240, 154, 26, 0.22)';
             ctx.lineWidth = 6;
             ctx.stroke();
 
-            // Light Rail Line (輕軌綠線)
+            // Light Rail
             ctx.beginPath();
             ctx.moveTo(pPier2.x, pPier2.y);
             ctx.bezierCurveTo(pPier2.x + 80, pPier2.y + 60, pExhibition.x - 120, pExhibition.y + 60, pExhibition.x, pExhibition.y);
-            ctx.strokeStyle = 'rgba(35, 147, 67, 0.2)';
+            ctx.strokeStyle = 'rgba(31, 161, 76, 0.22)';
             ctx.lineWidth = 6;
             ctx.stroke();
 
-            // Walk Path Corridor (步廊線)
+            // Walk Corridor
             ctx.beginPath();
             ctx.setLineDash([4, 4]);
             ctx.moveTo(pHotel.x, pHotel.y);
             ctx.lineTo(pPier2.x, pPier2.y);
-            ctx.strokeStyle = 'rgba(110, 105, 99, 0.4)';
+            ctx.strokeStyle = 'rgba(121, 115, 107, 0.45)';
             ctx.lineWidth = 2.5;
             ctx.stroke();
             ctx.setLineDash([]);
@@ -871,10 +875,8 @@
         function animate() {
             dashOffset += 0.55;
             if (dashOffset > 1000) dashOffset = 0;
-            
             drawMapBackground();
             drawActiveRoute();
-            
             animationFrameId = requestAnimationFrame(animate);
         }
 
@@ -884,7 +886,7 @@
 
             ctx.save();
             ctx.beginPath();
-            
+
             const startPoint = getCanvasCoords(route.path[0]);
             ctx.moveTo(startPoint.x, startPoint.y);
 
@@ -892,16 +894,14 @@
                 const pPrev = getCanvasCoords(route.path[i-1]);
                 const pCurr = getCanvasCoords(route.path[i]);
 
-                if ((route.path[i-1] === 'pier2' && route.path[i] === 'exhibition') || 
+                if ((route.path[i-1] === 'pier2' && route.path[i] === 'exhibition') ||
                     (route.path[i-1] === 'exhibition' && route.path[i] === 'pier2')) {
-                    
                     if (route.path[i-1] === 'pier2') {
                         ctx.bezierCurveTo(pPrev.x + 80, pPrev.y + 60, pCurr.x - 120, pCurr.y + 60, pCurr.x, pCurr.y);
                     } else {
                         ctx.bezierCurveTo(pPrev.x - 120, pPrev.y + 60, pCurr.x + 80, pCurr.y + 60, pCurr.x, pCurr.y);
                     }
-                } 
-                else {
+                } else {
                     ctx.lineTo(pCurr.x, pCurr.y);
                 }
             }
@@ -926,7 +926,6 @@
             const temp = activeStart;
             activeStart = activeEnd;
             activeEnd = temp;
-            
             document.getElementById('select-start').value = activeStart;
             document.getElementById('select-end').value = activeEnd;
             updateDashboard();
@@ -948,32 +947,30 @@
 
             const listContainer = document.getElementById('modal-food-list');
             listContainer.innerHTML = '';
-            
+
             if (spot.food && spot.food.length > 0) {
                 spot.food.forEach((item, idx) => {
                     const li = document.createElement('li');
-                    li.className = 'bg-stone-50 p-2.5 rounded-lg border border-stone-200/50 text-xs hover:border-accent-teal hover:bg-stone-100 cursor-pointer transition-all flex flex-col gap-0.5 shadow-sm';
+                    li.className = 'bg-stone-50 p-3 rounded-xl ring-1 ring-stone-200/60 hover:ring-accent-teal hover:bg-stone-100 cursor-pointer transition-all flex flex-col gap-1 active:scale-[0.99]';
                     li.onclick = () => {
                         closeModal();
-                        setTimeout(() => openFoodModal(id, idx), 280);
+                        setTimeout(() => openFoodModal(id, idx), 300);
                     };
                     li.innerHTML = `
-                        <div class="font-bold text-accent-teal flex justify-between items-center">
-                            <span class="flex items-center gap-1.5">
-                                <span>${item.name}</span>
-                                <span class="text-[9px] text-amber-600 bg-amber-50 px-1 rounded font-bold">${item.rating}</span>
+                        <div class="font-bold text-accent-teal text-[13px] flex justify-between items-center gap-2">
+                            <span class="flex items-center gap-1.5 min-w-0">
+                                <span class="truncate">${item.name}</span>
+                                <span class="text-[10px] text-amber-700 bg-amber-50 px-1.5 rounded font-bold flex-shrink-0">${item.rating}</span>
                             </span>
-                            <span class="text-[9px] text-text-muted font-normal flex items-center gap-0.5">
-                                🔍 詳情
-                            </span>
+                            <span class="text-[10px] text-text-muted font-normal flex-shrink-0">🔍 詳情</span>
                         </div>
-                        <div class="text-[10px] text-text-muted leading-relaxed">${item.note}</div>
+                        <div class="text-[11px] text-text-muted leading-relaxed">${item.note}</div>
                     `;
                     listContainer.appendChild(li);
                 });
             } else {
                 listContainer.innerHTML = `
-                    <li class="text-[10px] text-text-muted italic py-2 text-center bg-stone-50 rounded border border-dashed border-stone-200">
+                    <li class="text-[11px] text-text-muted italic py-3 text-center bg-stone-50 rounded-xl ring-1 ring-dashed ring-stone-200">
                         本站點主要做為交通核心樞紐。
                     </li>
                 `;
@@ -981,14 +978,12 @@
 
             const overlay = document.getElementById('detail-modal');
             const box = document.getElementById('modal-box');
-            
             overlay.classList.remove('hidden');
             overlay.classList.add('active');
-            
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 box.classList.remove('scale-down', 'opacity-0');
                 box.classList.add('scale-up', 'opacity-1');
-            }, 20);
+            });
         }
 
         function openFoodModal(spotId, foodIdx) {
@@ -1004,47 +999,40 @@
             document.getElementById('food-modal-hours').textContent = foodItem.hours || '請參考店家官網公告';
             document.getElementById('food-modal-foot').textContent = foodItem.foot || '詳見導航指南';
 
-            // Automatic custom location generation for Google Map links
             const queryName = encodeURIComponent("高雄 " + foodItem.name);
             document.getElementById('food-modal-map-btn').href = `https://www.google.com/maps/search/?api=1&query=${queryName}`;
 
             const overlay = document.getElementById('food-modal');
             const box = document.getElementById('food-modal-box');
-            
             overlay.classList.remove('hidden');
             overlay.classList.add('active');
-            
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 box.classList.remove('scale-down', 'opacity-0');
                 box.classList.add('scale-up', 'opacity-1');
-            }, 20);
+            });
         }
 
         function closeFoodModal() {
             const overlay = document.getElementById('food-modal');
             const box = document.getElementById('food-modal-box');
-            
             box.classList.remove('scale-up', 'opacity-1');
             box.classList.add('scale-down', 'opacity-0');
-            
             setTimeout(() => {
                 overlay.classList.remove('active');
                 overlay.classList.add('hidden');
-            }, 250);
+            }, 280);
         }
 
         function closeModal() {
             const overlay = document.getElementById('detail-modal');
             const box = document.getElementById('modal-box');
-            
             box.classList.remove('scale-up', 'opacity-1');
             box.classList.add('scale-down', 'opacity-0');
-            
             setTimeout(() => {
                 overlay.classList.remove('active');
                 overlay.classList.add('hidden');
                 modalActiveNodeId = '';
-            }, 250);
+            }, 280);
         }
 
         function closeModalOnOutsideClick(event) {
@@ -1053,7 +1041,6 @@
 
         function setPointFromModal(type) {
             if (!modalActiveNodeId) return;
-
             if (type === 'start') {
                 activeStart = modalActiveNodeId;
                 document.getElementById('select-start').value = activeStart;
@@ -1061,7 +1048,6 @@
                 activeEnd = modalActiveNodeId;
                 document.getElementById('select-end').value = activeEnd;
             }
-
             updateDashboard();
             closeModal();
         }
@@ -1074,21 +1060,21 @@
             document.getElementById('lbl-start').textContent = startNode.name;
             document.getElementById('lbl-end').textContent = endNode.name;
             document.getElementById('lbl-time').textContent = route.time;
-            
+
             const typeBadge = document.getElementById('lbl-type-badge');
-            typeBadge.className = `text-[10px] font-bold text-white px-2.5 py-0.5 rounded-full mt-1 inline-block ${route.badge}`;
+            typeBadge.className = `text-[11px] font-bold text-white px-3 py-1 rounded-full ${route.badge}`;
             typeBadge.textContent = route.type;
 
             const allNodeIds = ['arrival', 'station', 'hotel', 'pier2', 'exhibition'];
             allNodeIds.forEach(id => {
                 const badge = document.getElementById(`badge-${id}`);
                 const nodeBox = document.getElementById(`node-${id}`);
-                
-                badge.className = "absolute -top-6 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-sm hidden";
-                nodeBox.className = "absolute cursor-pointer flex flex-col items-center group transition-all";
-                
+
+                badge.className = "absolute -top-7 text-[10px] font-bold px-1.5 py-0.5 rounded-md shadow-sm hidden";
+                nodeBox.className = "absolute cursor-pointer flex flex-col items-center group";
+
                 if (id === activeStart && id === activeEnd) {
-                    badge.textContent = "起訖點相同";
+                    badge.textContent = "起訖相同";
                     badge.classList.add('bg-stone-800', 'text-white', 'block');
                     nodeBox.classList.add('pulse-start-active');
                 } else if (id === activeStart) {
@@ -1110,14 +1096,14 @@
                 stepDiv.className = 'flex gap-3 items-start';
                 stepDiv.innerHTML = `
                     <div class="flex flex-col items-center flex-shrink-0">
-                        <div class="w-6 h-6 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-xs shadow-sm unicode-icon z-10">
+                        <div class="w-8 h-8 rounded-full bg-accent-teal/10 border border-accent-teal/20 flex items-center justify-center text-sm unicode-icon z-10">
                             ${step.icon}
                         </div>
-                        ${!isLast ? '<div class="w-0.5 h-10 bg-stone-200 -my-0.5"></div>' : ''}
+                        ${!isLast ? '<div class="w-0.5 flex-1 min-h-[28px] bg-stone-200 my-0.5"></div>' : ''}
                     </div>
-                    <div class="pb-1">
-                        <h4 class="text-xs font-bold text-text-main">${step.title}</h4>
-                        <p class="text-[10px] text-text-muted leading-relaxed mt-0.5">${step.desc}</p>
+                    <div class="pb-3">
+                        <h4 class="text-sm font-bold text-text-main">${step.title}</h4>
+                        <p class="text-xs text-text-muted leading-relaxed mt-0.5">${step.desc}</p>
                     </div>
                 `;
                 stepsBox.appendChild(stepDiv);
@@ -1130,25 +1116,23 @@
             if (endNode.food && endNode.food.length > 0) {
                 endNode.food.forEach((item, idx) => {
                     const li = document.createElement('li');
-                    li.className = 'bg-stone-50 p-3 rounded-lg border border-stone-200/60 shadow-sm hover:border-accent-teal/60 hover:bg-stone-100/50 transition-all cursor-pointer group flex flex-col';
+                    li.className = 'bg-stone-50 p-3.5 rounded-xl ring-1 ring-stone-200/60 hover:ring-accent-teal/60 hover:bg-stone-100/60 transition-all cursor-pointer group flex flex-col active:scale-[0.99]';
                     li.onclick = () => openFoodModal(activeEnd, idx);
                     li.innerHTML = `
-                        <div class="font-bold text-accent-teal text-xs flex justify-between items-center">
-                            <span class="flex items-center gap-1.5">
-                                <span>${item.name}</span>
-                                <span class="text-[9px] text-amber-600 bg-amber-50 px-1.5 py-0.1 rounded font-bold">${item.rating}</span>
+                        <div class="flex justify-between items-center gap-2">
+                            <span class="flex items-center gap-1.5 min-w-0">
+                                <span class="font-bold text-accent-teal text-sm truncate">${item.name}</span>
+                                <span class="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded font-bold flex-shrink-0">${item.rating}</span>
                             </span>
-                            <span class="text-[9px] px-1.5 py-0.5 bg-accent-teal/10 rounded font-normal flex items-center gap-0.5 group-hover:bg-accent-teal group-hover:text-white transition-colors">
-                                🔍 詳情
-                            </span>
+                            <span class="text-[10px] px-2 py-1 bg-accent-teal/10 rounded-lg font-medium flex-shrink-0 text-accent-teal group-hover:bg-accent-teal group-hover:text-white transition-colors">🔍 詳情</span>
                         </div>
-                        <div class="text-[10px] text-text-muted leading-relaxed mt-1">${item.note}</div>
+                        <div class="text-xs text-text-muted leading-relaxed mt-1.5">${item.note}</div>
                     `;
                     foodBox.appendChild(li);
                 });
             } else {
                 foodBox.innerHTML = `
-                    <li class="text-[10px] text-text-muted italic py-4 bg-stone-50 text-center rounded border border-dashed border-stone-200">
+                    <li class="text-xs text-text-muted italic py-4 bg-stone-50 text-center rounded-xl ring-1 ring-dashed ring-stone-200">
                         該地點主要做為交通快轉樞紐。
                     </li>
                 `;
