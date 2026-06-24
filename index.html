@@ -16,6 +16,14 @@
     <script>
         tailwind.config = {
             theme: {
+                screens: {
+                    'xs': '400px',
+                    'sm': '640px',
+                    'md': '768px',
+                    'lg': '1024px',
+                    'xl': '1280px',
+                    '2xl': '1536px'
+                },
                 extend: {
                     colors: {
                         'neutral-bg': '#F4F1EA',
@@ -173,7 +181,7 @@
                 </div>
 
                 <!-- Map Canvas + Nodes -->
-                <div class="relative w-full rounded-2xl bg-gradient-to-br from-stone-50 to-stone-100 ring-1 ring-stone-200/80 overflow-hidden" style="aspect-ratio: 4/3;">
+                <div class="relative w-full rounded-2xl bg-gradient-to-br from-stone-50 to-stone-100 ring-1 ring-stone-200/80 overflow-hidden aspect-[3/4] xs:aspect-[4/5] sm:aspect-[4/3]">
 
                     <canvas id="mapCanvas" class="absolute inset-0 w-full h-full pointer-events-none"></canvas>
 
